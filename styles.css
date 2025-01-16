@@ -1,0 +1,260 @@
+:root {
+    --bg: #1A1816;
+    --card: rgba(36, 34, 32, 0.75);
+    --text: #FFFAF5;
+    --border: rgba(255, 250, 245, 0.1);
+    --blur: 5px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Noto Sans', sans-serif;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+}
+
+#background-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    transition: opacity 0.6s ease;
+}
+
+.author {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    text-align: right;
+    color: var(--text);
+    z-index: 100;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    padding: 10px 20px;
+    background: var(--card);
+    backdrop-filter: blur(var(--blur));
+    border-radius: 8px;
+    transition: opacity 0.6s ease;
+}
+
+.flip-clock {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    display: flex;
+    gap: 5px;
+    transition: all 0.6s ease;
+}
+
+.time-segment {
+    display: flex;
+    align-items: center;
+}
+
+.flip-number {
+    width: 60px;
+    height: 80px;
+    background: var(--card);
+    border-radius: 8px;
+    font-size: 3rem;
+    line-height: 80px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(var(--blur));
+}
+
+.flip-number[data-changing="true"] {
+    animation: numberChange 0.15s ease-out;
+}
+
+@keyframes numberChange {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+    100% { transform: translateY(0); }
+}
+
+.time-separator {
+    font-size: 3rem;
+    margin: 0 5px;
+    color: #444;
+}
+
+.schedule-info {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background: var(--card);
+    backdrop-filter: blur(var(--blur));
+    border-radius: 8px;
+    z-index: 2;
+    transition: opacity 0.6s ease;
+    position: fixed;
+    top: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.cards {
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px;
+    z-index: 100;
+    transition: transform 0.6s ease;
+}
+
+.card {
+    background: var(--card);
+    backdrop-filter: blur(var(--blur));
+    border: 1px solid var(--border);
+    padding: 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 120px;
+    height: 120px;
+    transition: all 0.6s ease;
+    transform-origin: bottom center;
+    text-align: center;
+    justify-content: center;
+}
+
+.card span {
+    text-align: center;
+    width: 100%;
+    display: block;
+}
+
+.card.active {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 75vh;
+    z-index: 10;
+    padding: 0;
+    transition: all 0.6s ease;
+}
+
+.cards.has-active .card:not(.active) {
+    width: auto;
+    height: auto;
+    padding: 10px 20px;
+    flex-direction: row;
+    gap: 0;
+    transform: translateY(20px);
+}
+
+.close-button {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    padding: 10px 20px !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+.cards.has-active .close-button {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.icon {
+    width: 40px;
+    height: 40px;
+    opacity: 0.8;
+    transition: opacity 0.6s ease;
+}
+
+.frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 8px;
+    background: var(--card);
+}
+
+@media (max-width: 768px) {
+    .author {
+        display: none;
+    }
+
+    .flip-clock {
+        top: 50%;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+
+    .card.active {
+        width: 100%;
+        height: calc(100vh - 70px);
+        top: 0;
+        left: 0;
+        transform: none;
+        border-radius: 0;
+    }
+
+    .cards {
+        bottom: 0;
+        gap: 10px;
+        padding: 10px;
+        background: var(--bg);
+    }
+
+    .card {
+        width: auto;
+        height: auto;
+        padding: 10px 20px;
+        border-radius: 0;
+        flex-direction: row;
+        gap: 0;
+    }
+
+    .card .icon {
+        display: none;
+    }
+
+    .schedule-info {
+        display: none;
+    }
+
+    .cards.has-active .card:not(.active) {
+        padding: 10px 20px;
+        background: transparent;
+        border: none;
+        backdrop-filter: none;
+    }
+
+    .cards.has-active .close-button {
+        padding: 10px 20px;
+        background: transparent;
+        border: none;
+        backdrop-filter: none;
+    }
+
+    .frame {
+        border-radius: 0;
+    }
+}
