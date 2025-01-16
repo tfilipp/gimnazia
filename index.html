@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>гимназия</title>
+    <style>
+        :root {
+            --bg: #1A1816;
+            --card: #242220;
+            --text: #FFFAF5;
+            --border: rgba(255, 250, 245, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Noto Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .clock {
+            margin-top: 60px;
+            font-size: 3rem;
+            font-family: 'Oranienbaum', serif;
+            position: relative;
+            z-index: 2;
+        }
+
+        .schedule-info {
+            margin-top: 20px;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+            z-index: 2;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 40px;
+            margin-top: 40px;
+            transition: all 0.5s ease;
+            z-index: 2;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 250, 245, 0.2);
+        }
+
+        .card.active {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 75vh;
+            z-index: 10;
+        }
+
+        .cards.frame-mode {
+            position: fixed;
+            bottom: 60px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+            z-index: 5;
+            background: none;
+        }
+
+        .cards.frame-mode .card:not(.active) {
+            width: 120px;
+            height: 120px;
+            padding: 15px;
+            background: var(--card);
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .cards.frame-mode .card:not(.active):hover {
+            opacity: 1;
+            transform: translateY(-5px);
+        }
+
+        .frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 8px;
+            background: var(--card);
+        }
+
+        .camera-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--bg);
+            z-index: 1;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .camera-container.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .camera-view {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .motivation {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(26, 24, 22, 0.8);
+            padding: 15px 30px;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 2;
+            white-space: nowrap;
+        }
+
+        .motivation.visible {
+            opacity: 1;
+        }
+
+        .icon {
+            width: 40px;
+            height: 40px;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: var(--text);
+            cursor: pointer;
+            padding: 5px;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+            z-index: 11;
+        }
+
+        .close-button:hover {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .card.active {
+                width: 90%;
+                height: 70vh;
+            }
+
+            .cards.frame-mode .card:not(.active) {
+                width: 80px;
+                height: 80px;
+                padding: 10px;
+            }
+
+            .cards.frame-mode {
+                bottom: 40px;
+                gap: 10px;
+            }
+
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .clock {
+                font-size: 2rem;
+            }
+
+            .icon {
+                width: 30px;
+                height: 30px;
+            }
+
+            .cards.frame-mode .icon {
+                width: 24px;
+                height: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="clock"></div>
+    <div class="schedule-info"></div>
+    
+    <div class="camera-container">
+        <video id="fullscreen-video" autoplay playsinline></video>
+        <div class="motivation"></div>
+    </div>
+
+    <div class="cards">
+        <div class="card" data-type="schedule">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+            </svg>
+            <span>расписание</span>
+        </div>
+        <div class="card" data-type="events">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 8v4l3 3"/>
+                <circle cx="12" cy="12" r="10"/>
+            </svg>
+            <span>ивенты</span>
+        </div>
+        <div class="card" data-type="mirror">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v2M12 20v2M4 12H2M22 12h-2"/>
+                <circle cx="12" cy="12" r="8"/>
+            </svg>
+            <span>зеркало</span>
+        </div>
+        <div class="card" data-type="site">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <path d="M3 9h18M9 3v18"/>
+            </svg>
+            <span>сайт гимназии</span>
+        </div>
+    </div>
+
+    <script>
+        const schedule = [
+            { start: '08:15', end: '09:00' },
+            { start: '09:10', end: '09:55' },
+            { start: '10:15', end: '11:00' },
+            { start: '11:10', end: '11:55' },
+            { start: '12:05', end: '12:50' },
+            { start: '13:10', end: '13:55' },
+            { start: '14:05', end: '14:50' },
+            { start: '15:00', end: '15:45' }
+        ];
+
+        const motivationalPhrases = [
+            "каждое достижение начинается с решения попробовать",
+            "твои возможности ограничены только твоим воображением",
+            "успех - это путь, а не пункт назначения",
+            "верь в себя, и все получится",
+            "маленький прогресс каждый день ведет к большим результатам"
+        ];
+
+        let inactivityTimer;
+        let videoStream = null;
+
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(showFullscreenCamera, 30000);
+        }
+
+        async function showFullscreenCamera() {
+            const container = document.querySelector('.camera-container');
+            const video = document.getElementById('fullscreen-video');
+
+            try {
+                if (!videoStream) {
+                    videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                }
+                video.srcObject = videoStream;
+                container.classList.add('active');
+                showRandomMotivation();
+            } catch (err) {
+                console.error('Ошибка доступа к камере:', err);
+            }
+        }
+
+        function hideFullscreenCamera() {
+            const container = document.querySelector('.camera-container');
+            container.classList.remove('active');
+            resetInactivityTimer();
+        }
+
+        document.addEventListener('mousemove', resetInactivityTimer);
+        document.addEventListener('keypress', resetInactivityTimer);
+        document.addEventListener('click', resetInactivityTimer);
+
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            
+            document.querySelector('.clock').textContent = `${hours}:${minutes}:${seconds}`;
+            
+            const currentTime = hours + ':' + minutes;
+            updateScheduleInfo(currentTime);
+        }
+
+        function timeToMinutes(time) {
+            const [hours, minutes] = time.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+
+        function updateScheduleInfo(currentTime) {
+            const currentMinutes = timeToMinutes(currentTime);
+            let message = '';
+
+            if (currentMinutes < timeToMinutes(schedule[0].start)) {
+                const diff = timeToMinutes(schedule[0].start) - currentMinutes;
+                message = `до начала занятий ${diff} минут`;
+                if (diff < 1) {
+                    message = `до начала занятий ${Math.round((diff * 60))} секунд`;
+                }
+            }
+            else if (currentMinutes > timeToMinutes(schedule[schedule.length - 1].end)) {
+                message = 'уроки кончились';
+            }
+            else {
+                for (let i = 0; i < schedule.length; i++) {
+                    const lessonStart = timeToMinutes(schedule[i].start);
+                    const lessonEnd = timeToMinutes(schedule[i].end);
+
+                    if (currentMinutes >= lessonStart && currentMinutes <= lessonEnd) {
+                        const remaining = lessonEnd - currentMinutes;
+                        message = `идёт ${i + 1}-й урок. до перемены ${remaining} минут`;
+                        if (remaining < 1) {
+                            message = `идёт ${i + 1}-й урок. до перемены ${Math.round((remaining * 60))} секунд`;
+                        }
+                        break;
+                    }
+                    else if (i < schedule.length - 1) {
+                        const nextLessonStart = timeToMinutes(schedule[i + 1].start);
+                        if (currentMinutes > lessonEnd && currentMinutes < nextLessonStart) {
+                            const remaining = nextLessonStart - currentMinutes;
+                            message = `перемена! до начала ${i + 2}-го урока осталось ${remaining} минут`;
+                            if (remaining < 1) {
+                                message = `перемена! до начала ${i + 2}-го урока осталось ${Math.round((remaining * 60))} секунд`;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+            document.querySelector('.schedule-info').textContent = message;
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+        resetInactivityTimer();
+
+        const cards = document.querySelectorAll('.card');
+        let activeCard = null;
+
+        function closeActiveCard() {
+            if (activeCard) {
+                if (activeCard.dataset.type === 'mirror' && videoStream) {
+                    const tracks = videoStream.getTracks();
+                    tracks.forEach(track => track.stop());
+                    videoStream = null;
+                }
+                
+                const frame = activeCard.querySelector('iframe');
+                if (frame) {
+                    frame.src = 'about:blank';
+                }
+                activeCard.classList.remove('active');
+                activeCard.innerHTML = activeCard.originalContent;
+                document.querySelector('.cards').classList.remove('frame-mode');
+                activeCard = null;
+            }
+        }
+
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                const type = card.dataset.type;
+                
+                if (activeCard === card) {
+                    closeActiveCard();
+                    return;
+                }
+
+                closeActiveCard();
+
+                document.querySelector('.cards').classList.add('frame-mode');
+                card.classList.add('active');
+                card.originalContent = card.innerHTML;
+
+                const closeBtn = document.createElement('button');
+                closeBtn.className = 'close-button';
+                closeBtn.innerHTML = '×';
+                closeBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    closeActiveCard();
+                };
+
+                switch(type) {
+                    case 'schedule':
+                        card.innerHTML = `
+                            <iframe class="frame" src="https://raspisanie.nikasoft.ru/23808586.html#cls" frameborder="0"></iframe>
+                        `;
+                        card.appendChild(closeBtn);
+                        break;
+                    case 'events':
+                        card.innerHTML = `
+                            <div class="frame"><h1>скоро</h1></div>
+                        `;
+                        card.appendChild(closeBtn);
+                        break;
+                    case 'mirror':
+                        setupCamera(card);
+                        card.appendChild(closeBtn);
+                        break;
+                    case 'site':
+                        card.innerHTML = `
+                            <iframe class="frame" src="https://lub-gimnazya41.edumsko.ru/" frameborder="0"></iframe>
+                        `;
+                        card.appendChild(closeBtn);
+                        break;
+                }
+
+                activeCard = card;
+            });
+        });
+
+        async function setupCamera(card) {
+            card.innerHTML = `
+                <div class="camera-view">
+                    <video id="video" autoplay playsinline></video>
+                    <div class="motivation"></div>
+                </div>
+            `;
+
+            try {
+                if (!videoStream) {
+                    videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                }
+                const video = document.getElementById('video');
+                video.srcObject = videoStream;
+                
+                showRandomMotivation();
+                setInterval(showRandomMotivation, 15000);
+            } catch (err) {
+                card.innerHTML = '<div>ошибка доступа к камере</div>';
+            }
+        }
+
+        function showRandomMotivation() {
+            const motivationElements = document.querySelectorAll('.motivation');
+            motivationElements.forEach(el => {
+                if (!el) return;
+
+                el.classList.remove('visible');
+                
+                setTimeout(() => {
+                    el.textContent = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
+                    el.classList.add('visible');
+                }, 500);
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.camera-container') && !e.target.closest('.cards')) {
+                hideFullscreenCamera();
+            }
+        });
+    </script>
+</body>
+</html>
