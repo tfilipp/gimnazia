@@ -4,73 +4,161 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>гимназия</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg: #1A1816;
-            --card: #242220;
+            --card: rgba(36, 34, 32, 0.75);
             --text: #FFFAF5;
             --border: rgba(255, 250, 245, 0.1);
+            --blur: 5px;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Noto Sans', sans-serif;
         }
 
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: 'Noto Sans', sans-serif;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            overflow-x: hidden;
+            overflow: hidden;
         }
 
-        .clock {
-            margin-top: 60px;
-            font-size: 3rem;
-            font-family: 'Oranienbaum', serif;
-            position: relative;
+        #background-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: 1;
+            object-fit: cover;
+            transition: opacity 0.6s ease;
+        }
+
+        #background-video.fade {
+            opacity: 0;
+        }
+
+        .author {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            text-align: right;
+            color: var(--text);
+            z-index: 100;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            padding: 10px 20px;
+            background: var(--card);
+            backdrop-filter: blur(var(--blur));
+            border-radius: 8px;
+            transition: opacity 0.6s ease;
+        }
+
+        .flip-clock {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 2;
+            display: flex;
+            gap: 5px;
+            transition: all 0.6s ease;
+        }
+
+        .time-segment {
+            display: flex;
+            align-items: center;
+        }
+
+        .flip-number {
+            width: 60px;
+            height: 80px;
+            background: var(--card);
+            border-radius: 8px;
+            font-size: 3rem;
+            line-height: 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(var(--blur));
+        }
+
+        .flip-number[data-changing="true"] {
+            animation: numberChange 0.15s ease-out;
+        }
+
+        @keyframes numberChange {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-2px); }
+            100% { transform: translateY(0); }
+        }
+
+        .time-separator {
+            font-size: 3rem;
+            margin: 0 5px;
+            color: #444;
         }
 
         .schedule-info {
             margin-top: 20px;
-            opacity: 0.8;
-            transition: opacity 0.3s;
+            padding: 10px 20px;
+            background: var(--card);
+            backdrop-filter: blur(var(--blur));
+            border-radius: 8px;
             z-index: 2;
+            transition: opacity 0.6s ease;
+            position: fixed;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
         .cards {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            padding: 40px;
-            margin-top: 40px;
-            transition: all 0.5s ease;
-            z-index: 2;
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+            z-index: 100;
+            transition: transform 0.6s ease;
         }
 
         .card {
             background: var(--card);
+            backdrop-filter: blur(var(--blur));
             border: 1px solid var(--border);
             padding: 30px;
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 15px;
-            position: relative;
+            width: 120px;
+            height: 120px;
+            transition: all 0.6s ease;
+            transform-origin: bottom center;
+            text-align: center;
+            justify-content: center;
         }
 
-        .card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(255, 250, 245, 0.2);
+        .card span {
+            text-align: center;
+            width: 100%;
+            display: block;
         }
 
         .card.active {
@@ -81,33 +169,38 @@
             width: 80%;
             height: 75vh;
             z-index: 10;
+            padding: 0;
+            transition: all 0.6s ease;
         }
 
-        .cards.frame-mode {
-            position: fixed;
-            bottom: 60px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            padding: 20px;
-            z-index: 5;
-            background: none;
+        .cards.has-active .card:not(.active) {
+            width: auto;
+            height: auto;
+            padding: 10px 20px;
+            flex-direction: row;
+            gap: 0;
+            transform: translateY(20px);
         }
 
-        .cards.frame-mode .card:not(.active) {
-            width: 120px;
-            height: 120px;
-            padding: 15px;
-            background: var(--card);
-            opacity: 0.8;
-            transition: all 0.3s ease;
+        .close-button {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            padding: 10px 20px !important;
+            width: auto !important;
+            height: auto !important;
         }
 
-        .cards.frame-mode .card:not(.active):hover {
+        .cards.has-active .close-button {
             opacity: 1;
-            transform: translateY(-5px);
+            pointer-events: auto;
+        }
+
+        .icon {
+            width: 40px;
+            height: 40px;
+            opacity: 0.8;
+            transition: opacity 0.6s ease;
         }
 
         .frame {
@@ -118,125 +211,95 @@
             background: var(--card);
         }
 
-        .camera-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: var(--bg);
-            z-index: 1;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s ease;
-        }
-
-        .camera-container.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        .camera-view {
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
-
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-
-        .motivation {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(26, 24, 22, 0.8);
-            padding: 15px 30px;
-            border-radius: 4px;
-            opacity: 0;
-            transition: opacity 0.5s;
-            z-index: 2;
-            white-space: nowrap;
-        }
-
-        .motivation.visible {
-            opacity: 1;
-        }
-
-        .icon {
-            width: 40px;
-            height: 40px;
-            opacity: 0.8;
-            transition: opacity 0.3s;
-        }
-
-        .close-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            color: var(--text);
-            cursor: pointer;
-            padding: 5px;
-            opacity: 0.8;
-            transition: opacity 0.3s;
-            z-index: 11;
-        }
-
-        .close-button:hover {
-            opacity: 1;
-        }
-
         @media (max-width: 768px) {
+            .author {
+                display: none;
+            }
+
+            .flip-clock {
+                top: 50%;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+
             .card.active {
-                width: 90%;
-                height: 70vh;
-            }
-
-            .cards.frame-mode .card:not(.active) {
-                width: 80px;
-                height: 80px;
-                padding: 10px;
-            }
-
-            .cards.frame-mode {
-                bottom: 40px;
-                gap: 10px;
+                width: 100%;
+                height: calc(100vh - 70px);
+                top: 0;
+                left: 0;
+                transform: none;
+                border-radius: 0;
             }
 
             .cards {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .clock {
-                font-size: 2rem;
-            }
-
-            .icon {
-                width: 30px;
-                height: 30px;
+                bottom: 0;
+                gap: 10px;
+                padding: 10px;
+                background: var(--bg);
             }
 
-            .cards.frame-mode .icon {
-                width: 24px;
-                height: 24px;
+            .card {
+                width: auto;
+                height: auto;
+                padding: 10px 20px;
+                border-radius: 0;
+                flex-direction: row;
+                gap: 0;
+            }
+
+            .card .icon {
+                display: none;
+            }
+
+            .schedule-info {
+                display: none;
+            }
+
+            .cards.has-active .card:not(.active) {
+                padding: 10px 20px;
+                background: transparent;
+                border: none;
+                backdrop-filter: none;
+            }
+
+            .cards.has-active .close-button {
+                padding: 10px 20px;
+                background: transparent;
+                border: none;
+                backdrop-filter: none;
+            }
+
+            .frame {
+                border-radius: 0;
             }
         }
     </style>
 </head>
 <body>
-    <div class="clock"></div>
-    <div class="schedule-info"></div>
-    
-    <div class="camera-container">
-        <video id="fullscreen-video" autoplay playsinline></video>
-        <div class="motivation"></div>
+    <video id="background-video" autoplay muted loop playsinline></video>
+
+    <div class="author">
+        сделано @abstp<br>
+        специально для гимназии 41
     </div>
+
+    <div class="flip-clock">
+        <div class="time-segment">
+            <div class="flip-number">0</div>
+            <div class="flip-number">0</div>
+        </div>
+        <div class="time-separator">:</div>
+        <div class="time-segment">
+            <div class="flip-number">0</div>
+            <div class="flip-number">0</div>
+        </div>
+        <div class="time-separator">:</div>
+        <div class="time-segment">
+            <div class="flip-number">0</div>
+            <div class="flip-number">0</div>
+        </div>
+    </div>
+
+    <div class="schedule-info"></div>
 
     <div class="cards">
         <div class="card" data-type="schedule">
@@ -253,25 +316,83 @@
                 <path d="M12 8v4l3 3"/>
                 <circle cx="12" cy="12" r="10"/>
             </svg>
-            <span>ивенты</span>
-        </div>
-        <div class="card" data-type="mirror">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2v2M12 20v2M4 12H2M22 12h-2"/>
-                <circle cx="12" cy="12" r="8"/>
-            </svg>
-            <span>зеркало</span>
+            <span>события</span>
         </div>
         <div class="card" data-type="site">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="18" height="18" rx="2"/>
                 <path d="M3 9h18M9 3v18"/>
             </svg>
-            <span>сайт гимназии</span>
+            <span>сайт</span>
+        </div>
+        <div class="card close-button" style="display: none">
+            <span>закрыть</span>
         </div>
     </div>
 
     <script>
+        class SoundManager {
+            constructor() {
+                this.sounds = {
+                    click: [],
+                    switch: [],
+                    ping: []
+                };
+                this.currentIndex = {
+                    click: 0,
+                    switch: 0,
+                    ping: 0
+                };
+            }
+
+            preload() {
+                const soundFiles = {
+                    click: 'click.mp3',
+                    switch: 'switch.mp3',
+                    ping: 'ping.mp3'
+                };
+
+                Object.entries(soundFiles).forEach(([key, file]) => {
+                    for (let i = 0; i < 5; i++) {
+                        const audio = new Audio(file);
+                        audio.preload = 'auto';
+                        this.sounds[key].push(audio);
+                    }
+                });
+            }
+
+            play(type) {
+                const soundArray = this.sounds[type];
+                if (!soundArray || soundArray.length === 0) return;
+
+                this.currentIndex[type] = (this.currentIndex[type] + 1) % soundArray.length;
+                const sound = soundArray[this.currentIndex[type]];
+                
+                sound.currentTime = 0;
+                const playPromise = sound.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.log("Audio play failed:", error);
+                    });
+                }
+            }
+        }
+
+        const soundManager = new SoundManager();
+        soundManager.preload();
+
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+                || window.innerWidth <= 768;
+        }
+
+        function playSound(type) {
+            if (!isMobile()) {
+                soundManager.play(type);
+            }
+        }
+
         const schedule = [
             { start: '08:15', end: '09:00' },
             { start: '09:10', end: '09:55' },
@@ -283,58 +404,57 @@
             { start: '15:00', end: '15:45' }
         ];
 
-        const motivationalPhrases = [
-            "каждое достижение начинается с решения попробовать",
-            "твои возможности ограничены только твоим воображением",
-            "успех - это путь, а не пункт назначения",
-            "верь в себя, и все получится",
-            "маленький прогресс каждый день ведет к большим результатам"
-        ];
+        let lastUpdate = Date.now();
+        let lastState = null;
 
-        let inactivityTimer;
-        let videoStream = null;
-
-        function resetInactivityTimer() {
-            clearTimeout(inactivityTimer);
-            inactivityTimer = setTimeout(showFullscreenCamera, 30000);
-        }
-
-        async function showFullscreenCamera() {
-            const container = document.querySelector('.camera-container');
-            const video = document.getElementById('fullscreen-video');
+        async function initCamera() {
+            const video = document.getElementById('background-video');
+            
+            if (isMobile()) {
+                video.style.display = 'none';
+                return;
+            }
 
             try {
-                if (!videoStream) {
-                    videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
-                }
-                video.srcObject = videoStream;
-                container.classList.add('active');
-                showRandomMotivation();
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
             } catch (err) {
                 console.error('Ошибка доступа к камере:', err);
+                video.style.display = 'none';
             }
         }
 
-        function hideFullscreenCamera() {
-            const container = document.querySelector('.camera-container');
-            container.classList.remove('active');
-            resetInactivityTimer();
+        if (!isMobile()) {
+            initCamera();
         }
 
-        document.addEventListener('mousemove', resetInactivityTimer);
-        document.addEventListener('keypress', resetInactivityTimer);
-        document.addEventListener('click', resetInactivityTimer);
+        function updateFlipClock(hours, minutes, seconds) {
+            const numbers = document.querySelectorAll('.flip-number');
+            const time = `${hours.padStart(2, '0')}${minutes.padStart(2, '0')}${seconds.padStart(2, '0')}`;
 
-        function updateClock() {
+            time.split('').forEach((digit, index) => {
+                const el = numbers[index];
+                if (el.textContent !== digit) {
+                    el.setAttribute('data-changing', 'true');
+                    el.textContent = digit;
+                    setTimeout(() => {
+                        el.removeAttribute('data-changing');
+                    }, 150);
+                }
+            });
+        }
+
+        function updateTime() {
             const now = new Date();
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const seconds = now.getSeconds().toString().padStart(2, '0');
-            
-            document.querySelector('.clock').textContent = `${hours}:${minutes}:${seconds}`;
-            
-            const currentTime = hours + ':' + minutes;
-            updateScheduleInfo(currentTime);
+            if (Date.now() - lastUpdate < 950) return;
+
+            lastUpdate = Date.now();
+            const hours = now.getHours().toString();
+            const minutes = now.getMinutes().toString();
+            const seconds = now.getSeconds().toString();
+
+            updateFlipClock(hours, minutes, seconds);
+            updateScheduleInfo(`${hours}:${minutes}`);
         }
 
         function timeToMinutes(time) {
@@ -345,8 +465,10 @@
         function updateScheduleInfo(currentTime) {
             const currentMinutes = timeToMinutes(currentTime);
             let message = '';
+            let currentState = null;
 
             if (currentMinutes < timeToMinutes(schedule[0].start)) {
+                currentState = 'before';
                 const diff = timeToMinutes(schedule[0].start) - currentMinutes;
                 message = `до начала занятий ${diff} минут`;
                 if (diff < 1) {
@@ -354,6 +476,7 @@
                 }
             }
             else if (currentMinutes > timeToMinutes(schedule[schedule.length - 1].end)) {
+                currentState = 'after';
                 message = 'уроки кончились';
             }
             else {
@@ -362,6 +485,7 @@
                     const lessonEnd = timeToMinutes(schedule[i].end);
 
                     if (currentMinutes >= lessonStart && currentMinutes <= lessonEnd) {
+                        currentState = `lesson-${i + 1}`;
                         const remaining = lessonEnd - currentMinutes;
                         message = `идёт ${i + 1}-й урок. до перемены ${remaining} минут`;
                         if (remaining < 1) {
@@ -372,6 +496,7 @@
                     else if (i < schedule.length - 1) {
                         const nextLessonStart = timeToMinutes(schedule[i + 1].start);
                         if (currentMinutes > lessonEnd && currentMinutes < nextLessonStart) {
+                            currentState = `break-${i + 1}`;
                             const remaining = nextLessonStart - currentMinutes;
                             message = `перемена! до начала ${i + 2}-го урока осталось ${remaining} минут`;
                             if (remaining < 1) {
@@ -383,127 +508,92 @@
                 }
             }
 
+            if (lastState !== currentState) {
+                lastState = currentState;
+                if (currentState && currentState !== 'before' && currentState !== 'after') {
+                    playSound('ping');
+                }
+            }
+
             document.querySelector('.schedule-info').textContent = message;
         }
 
-        setInterval(updateClock, 1000);
-        updateClock();
-        resetInactivityTimer();
+        setInterval(updateTime, 100);
+        updateTime();
 
+        const video = document.getElementById('background-video');
         const cards = document.querySelectorAll('.card');
+        const closeButton = document.querySelector('.close-button');
         let activeCard = null;
 
         function closeActiveCard() {
             if (activeCard) {
-                if (activeCard.dataset.type === 'mirror' && videoStream) {
-                    const tracks = videoStream.getTracks();
-                    tracks.forEach(track => track.stop());
-                    videoStream = null;
-                }
-                
+                playSound('switch');
                 const frame = activeCard.querySelector('iframe');
                 if (frame) {
                     frame.src = 'about:blank';
                 }
                 activeCard.classList.remove('active');
                 activeCard.innerHTML = activeCard.originalContent;
-                document.querySelector('.cards').classList.remove('frame-mode');
+                document.querySelector('.cards').classList.remove('has-active');
+                closeButton.style.display = 'none';
                 activeCard = null;
+                video.classList.remove('fade');
             }
         }
 
+        closeButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeActiveCard();
+        });
+
         cards.forEach(card => {
+            if (card.classList.contains('close-button')) return;
+            
             card.addEventListener('click', () => {
                 const type = card.dataset.type;
-                
+
                 if (activeCard === card) {
                     closeActiveCard();
                     return;
                 }
 
-                closeActiveCard();
+                if (!activeCard) {
+                    playSound('click');
+                }
 
-                document.querySelector('.cards').classList.add('frame-mode');
+                closeActiveCard();
+                
+                playSound('switch');
+                video.classList.add('fade');
+                
                 card.classList.add('active');
+                document.querySelector('.cards').classList.add('has-active');
+                closeButton.style.display = 'flex';
                 card.originalContent = card.innerHTML;
 
-                const closeBtn = document.createElement('button');
-                closeBtn.className = 'close-button';
-                closeBtn.innerHTML = '×';
-                closeBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    closeActiveCard();
-                };
-
-                switch(type) {
-                    case 'schedule':
-                        card.innerHTML = `
-                            <iframe class="frame" src="https://raspisanie.nikasoft.ru/23808586.html#cls" frameborder="0"></iframe>
-                        `;
-                        card.appendChild(closeBtn);
-                        break;
-                    case 'events':
-                        card.innerHTML = `
-                            <div class="frame"><h1>скоро</h1></div>
-                        `;
-                        card.appendChild(closeBtn);
-                        break;
-                    case 'mirror':
-                        setupCamera(card);
-                        card.appendChild(closeBtn);
-                        break;
-                    case 'site':
-                        card.innerHTML = `
-                            <iframe class="frame" src="https://lub-gimnazya41.edumsko.ru/" frameborder="0"></iframe>
-                        `;
-                        card.appendChild(closeBtn);
-                        break;
-                }
+                requestAnimationFrame(() => {
+                    switch(type) {
+                        case 'schedule':
+                            card.innerHTML = `
+                                <iframe class="frame" src="https://raspisanie.nikasoft.ru/23808586.html#cls" frameborder="0"></iframe>
+                            `;
+                            break;
+                        case 'events':
+                            card.innerHTML = `
+                                <div class="frame"><h1>скоро</h1></div>
+                            `;
+                            break;
+                        case 'site':
+                            card.innerHTML = `
+                                <iframe class="frame" src="https://lub-gimnazya41.edumsko.ru/" frameborder="0"></iframe>
+                            `;
+                            break;
+                    }
+                });
 
                 activeCard = card;
             });
-        });
-
-        async function setupCamera(card) {
-            card.innerHTML = `
-                <div class="camera-view">
-                    <video id="video" autoplay playsinline></video>
-                    <div class="motivation"></div>
-                </div>
-            `;
-
-            try {
-                if (!videoStream) {
-                    videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
-                }
-                const video = document.getElementById('video');
-                video.srcObject = videoStream;
-                
-                showRandomMotivation();
-                setInterval(showRandomMotivation, 15000);
-            } catch (err) {
-                card.innerHTML = '<div>ошибка доступа к камере</div>';
-            }
-        }
-
-        function showRandomMotivation() {
-            const motivationElements = document.querySelectorAll('.motivation');
-            motivationElements.forEach(el => {
-                if (!el) return;
-
-                el.classList.remove('visible');
-                
-                setTimeout(() => {
-                    el.textContent = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
-                    el.classList.add('visible');
-                }, 500);
-            });
-        }
-
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.camera-container') && !e.target.closest('.cards')) {
-                hideFullscreenCamera();
-            }
         });
     </script>
 </body>
