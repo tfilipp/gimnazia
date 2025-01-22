@@ -32,6 +32,7 @@ body {
     object-fit: cover;
     z-index: 1;
     transition: opacity 0.6s ease;
+    transform: scaleX(-1);
 }
 
 .author {
