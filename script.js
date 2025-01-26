@@ -406,7 +406,7 @@ cards.forEach(card => {
                     break;
                 case 'events':
                     card.innerHTML = `
-                        <div class="frame"><h1>скоро</h1></div>
+                        <div class="frame"><h1>1 событие</h1><br><h4>внешкольный заочный турнир по bedwars, дата не установлена</h4></div>
                     `;
                     break;
                 case 'site':
